@@ -6,43 +6,12 @@
 {-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE TypeOperators         #-}
 
-module Languages where
+module Interpreters where
 import           Control.Monad.Freer
 import           Domain
-
-
-data Kitchen a where
-    OrderPizza :: Pizza -> Kitchen Int
-    Complain :: String -> Kitchen ()
-
-orderPizza :: Member Kitchen effs => Pizza -> Eff effs Int
-orderPizza = send . OrderPizza
-
-complain :: Member Kitchen effs => String -> Eff effs ()
-complain = send . Complain
-
-data Bar a where
-    ServeWine :: Bar String
-    ServeAppetizers :: Int -> Bar ()
-
-serveWine :: Member Bar effs => Eff effs String
-serveWine = send ServeWine
-
-serveAppetizers :: Member Bar effs => Int -> Eff effs ()
-serveAppetizers = send . ServeAppetizers
-
-data CashDesk a where
-    MakeBill :: CashDesk Int
-    PayTheBill :: Int -> CashDesk (Maybe Int)
-
-makeBill :: Member CashDesk effs => Eff effs Int
-makeBill = send MakeBill
-
-payTheBill :: Member CashDesk effs => Int -> Eff effs (Maybe Int)
-payTheBill = send . PayTheBill
-
-
-
+import           Language.Bar
+import           Language.CashDesk
+import           Language.Kitchen
 
 runKitchen :: forall effs a. LastMember IO effs => Eff (Kitchen ': effs) a -> Eff effs a
 runKitchen = interpretM $ \case

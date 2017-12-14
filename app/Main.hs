@@ -9,25 +9,35 @@
 
 module Main where
 
-import           Control.Monad.Freer (Eff, Member, run, runM)
+import           Control.Monad.Freer (Eff, Member, runM)
 
 import           Domain
-import           Languages
-import           Lib
+import           Interpreters
+import           Language.Bar        (Bar)
+import qualified Language.Bar        as Bar
+import           Language.CashDesk   (CashDesk)
+import qualified Language.CashDesk   as CashDesk
+import           Language.Kitchen    (Kitchen)
+import qualified Language.Kitchen    as Kitchen
 
 main :: IO ()
 main = do
-    servedWine <- runM $ runKitchen $ runCashDesk $ runBar restaurant
+    servedWine <- runM $ runKitchen  $ runBar $ runCashDesk restaurant
     print servedWine
+
+payMyBill ::  (Member CashDesk r) => Eff r ()
+payMyBill = do
+    billAmt <- CashDesk.makeBill
+    CashDesk.payTheBill 12
+    CashDesk.payTheBill $ billAmt - 12
+    return ()
 
 restaurant :: (Member Kitchen r, Member Bar r, Member CashDesk r) => Eff r String
 restaurant = do
-    waitingTime1 <- orderPizza (Pizza "Margherita" Medium)
-    waitingTime2 <- orderPizza (Pizza "Capricora" Small)
-    wineName <- serveWine
-    serveAppetizers $ waitingTime1 + waitingTime2
-    complain $ "Does not match " ++ wineName
-    billAmt <- makeBill
-    payTheBill 12
-    payTheBill $ billAmt - 12
+    waitingTime1 <- Kitchen.orderPizza (Pizza "Margherita" Medium)
+    waitingTime2 <- Kitchen.orderPizza (Pizza "Capricora" Small)
+    wineName <- Bar.serveWine
+    Bar.serveAppetizers $ waitingTime1 + waitingTime2
+    Kitchen.complain $ "Food does not match " ++ wineName
+    payMyBill
     return wineName
