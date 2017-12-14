@@ -25,6 +25,7 @@ main = do
     servedWine <- runM $ runKitchen  $ runBar $ runCashDesk restaurant
     print servedWine
 
+-- reusable subscenario
 payMyBill ::  (Member CashDesk r) => Eff r ()
 payMyBill = do
     billAmt <- CashDesk.makeBill
@@ -32,6 +33,7 @@ payMyBill = do
     CashDesk.payTheBill $ billAmt - 12
     return ()
 
+-- example scenario
 restaurant :: (Member Kitchen r, Member Bar r, Member CashDesk r) => Eff r String
 restaurant = do
     waitingTime1 <- Kitchen.orderPizza (Pizza "Margherita" Medium)
