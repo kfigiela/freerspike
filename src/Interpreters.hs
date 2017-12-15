@@ -17,6 +17,7 @@ import           Control.Exception (ArithException (..), SomeException, throwIO)
 import           Domain
 import           Eff
 import           Eff.Exc
+import           Eff.Exc.Pure
 import           Eff.Region
 import           Eff.SafeIO        (SIO, safeIO)
 import           Language.Bar
@@ -44,18 +45,21 @@ startOven :: forall r s. ( s ~ Ancestor 0 r, Member (RegionEff Oven s) r) => Int
 startOven n = acquire @Oven n >>= return
 
 
+catchError' :: Member (Exc SomeException) r => Eff r a -> (SomeException -> Eff r a) -> Eff r a
+catchError' = catchError
+
 runKitchen :: (SafeForRegion Oven r, Member SIO r, Member (Exc SomeException) r) => Eff (Kitchen ': r) a -> Eff r a
 runKitchen = handleRelay pure (\k q -> interpret k >>= q) where
     interpret :: (SafeForRegion Oven r, Member SIO r, Member (Exc SomeException) r)  => Kitchen x -> Eff r x
-    interpret (OrderPizza pizza) = (do
+    interpret (OrderPizza pizza) = do
           safeIO $ print pizza
-          ovenRegion $ do
+          catchError' (ovenRegion $ do
             o <- startOven 1
             backupOven <- startOven 3
             safeIO $ putStrLn $ "baking " ++ (show pizza) ++ " at " ++ (unsafeWithResource o show)
             _ <- safeIO $ throwIO Overflow
-            safeIO $ putStrLn "this doesn't get run"
-          return 12)
+            safeIO $ putStrLn "this doesn't get run") (\exc -> safeIO $ print "kitchen failure")
+          return 12
 
     interpret (Complain complaint) = safeIO (print complaint)
 
