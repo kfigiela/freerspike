@@ -23,25 +23,25 @@ import           Language.Bar
 import           Language.CashDesk
 import           Language.Kitchen
 
-data Oven = Oven deriving Eq
+data Oven = Oven Int deriving (Eq, Show)
 
 instance SafeForRegion Oven '[SIO, Exc SomeException]
 
-type instance ResourceCtor Oven = ()
+type instance ResourceCtor Oven = Int
 
 
 ovenRegion :: forall r a. ( SafeForRegion Oven r, Member SIO r, Member (Exc SomeException) r) => Region Oven r a -> Eff r a
 ovenRegion = handleRegionRelay turnOn turnOff catchSafeIOExcs
   where
-    turnOn _ = do
-      safeIO $ putStrLn "heating up oven"
-      return (Oven)
+    turnOn n = do
+      safeIO $ putStrLn $ "heating up oven no " ++ show n
+      return (Oven 200)
     turnOff _ = do
       safeIO $ putStrLn "turned oven off"
 
 
-bakePizza :: forall r s. ( s ~ Ancestor 0 r, Member (RegionEff Oven s) r) => Eff r ()
-bakePizza = acquire @Oven () >> return ()
+startOven :: forall r s. ( s ~ Ancestor 0 r, Member (RegionEff Oven s) r) => Int -> Eff r (Resource Oven s)
+startOven n = acquire @Oven n >>= return
 
 
 runKitchen :: (SafeForRegion Oven r, Member SIO r, Member (Exc SomeException) r) => Eff (Kitchen ': r) a -> Eff r a
@@ -50,8 +50,9 @@ runKitchen = handleRelay pure (\k q -> interpret k >>= q) where
     interpret (OrderPizza pizza) = (do
           safeIO $ print pizza
           ovenRegion $ do
-            bakePizza
-            safeIO $ putStrLn $ "baking " ++ (show pizza)
+            o <- startOven 1
+            backupOven <- startOven 3
+            safeIO $ putStrLn $ "baking " ++ (show pizza) ++ " at " ++ (unsafeWithResource o show)
             _ <- safeIO $ throwIO Overflow
             safeIO $ putStrLn "this doesn't get run"
           return 12)
