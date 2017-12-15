@@ -21,29 +21,29 @@ import           Language.Kitchen
 
 
 runKitchen :: (Member SIO r, Member (Exc SomeException) r) => Eff (Kitchen ': r) a -> Eff r a
-runKitchen = handleRelay pure interpret where
-    interpret :: (Member SIO r, Member (Exc SomeException) r)  => Kitchen x -> Arr r x a -> Eff r a
-    interpret (OrderPizza pizza) q = q =<< safeIO (do
-        print pizza
-        return 12)
+runKitchen = handleRelay pure (\k q -> interpret k >>= q) where
+    interpret :: (Member SIO r, Member (Exc SomeException) r)  => Kitchen x -> Eff r x
+    interpret (OrderPizza pizza) = safeIO (do
+          print pizza
+          return 12)
 
-    interpret (Complain complaint) q = q =<< safeIO (print complaint)
+    interpret (Complain complaint) = safeIO (print complaint)
 
 runBar :: (Member SIO r, Member (Exc SomeException) r) => Eff (Bar ': r) a -> Eff r a
-runBar = handleRelay pure interpret where
-    interpret :: (Member SIO r, Member (Exc SomeException) r)  => Bar x -> Arr r x a -> Eff r a
-    interpret (ServeWine) q = q =<< safeIO (do
+runBar = handleRelay pure (\k q -> interpret k >>= q) where
+    interpret :: (Member SIO r, Member (Exc SomeException) r)  => Bar x -> Eff r x
+    interpret (ServeWine) = safeIO $ do
                 putStrLn "Serving some wine"
-                return "Merlot")
-    interpret (ServeAppetizers time) q = q =<< safeIO (putStrLn $ "Appetizers for waiting time: " ++ show time)
+                return "Merlot"
+    interpret (ServeAppetizers time) = safeIO $ putStrLn $ "Appetizers for waiting time: " ++ show time
 
 
 runCashDesk :: (Member SIO r, Member (Exc SomeException) r) => Eff (CashDesk ': r) a -> Eff r a
-runCashDesk = handleRelay pure interpret where
-    interpret :: (Member SIO r, Member (Exc SomeException) r)  => CashDesk x -> Arr r x a -> Eff r a
-    interpret (MakeBill) q = q =<< safeIO (do
+runCashDesk = handleRelay pure (\k q -> interpret k >>= q) where
+    interpret :: (Member SIO r, Member (Exc SomeException) r)  => CashDesk x -> Eff r x
+    interpret (MakeBill) = safeIO $ do
         putStrLn "Printing bill"
-        return 421)
-    interpret (PayTheBill amt) q = q =<< safeIO (do
+        return 421
+    interpret (PayTheBill amt) = safeIO $ do
       putStrLn $ "Paid " ++ show amt
-      return Nothing)
+      return Nothing
