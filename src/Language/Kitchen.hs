@@ -7,8 +7,9 @@
 {-# LANGUAGE TypeOperators         #-}
 
 module Language.Kitchen where
-import           Control.Monad.Freer
+
 import           Domain
+import           Eff
 
 
 data Kitchen a where

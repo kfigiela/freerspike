@@ -9,20 +9,21 @@
 
 module Main where
 
-import           Control.Monad.Freer (Eff, Member, runM)
+import           Eff               (Eff, Member, runM)
+import           Eff.SafeIO        (runSafeIO)
 
 import           Domain
 import           Interpreters
-import           Language.Bar        (Bar)
-import qualified Language.Bar        as Bar
-import           Language.CashDesk   (CashDesk)
-import qualified Language.CashDesk   as CashDesk
-import           Language.Kitchen    (Kitchen)
-import qualified Language.Kitchen    as Kitchen
+import           Language.Bar      (Bar)
+import qualified Language.Bar      as Bar
+import           Language.CashDesk (CashDesk)
+import qualified Language.CashDesk as CashDesk
+import           Language.Kitchen  (Kitchen)
+import qualified Language.Kitchen  as Kitchen
 
 main :: IO ()
 main = do
-    servedWine <- runM $ runKitchen  $ runBar $ runCashDesk restaurant
+    servedWine <- runSafeIO $ runKitchen  $ runBar $ runCashDesk restaurant
     print servedWine
 
 -- reusable subscenario

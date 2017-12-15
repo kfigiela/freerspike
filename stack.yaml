@@ -40,8 +40,8 @@ packages:
 # Dependency packages to be pulled from upstream that are not in the resolver
 # (e.g., acme-missiles-0.3)
 extra-deps:
-- git: https://github.com/lexi-lambda/freer-simple.git
-  commit: 888465fd063c3939e087ab482fb4d11795b133f8
+- git: https://github.com/TaktInc/freer.git
+  commit: b1e4911832ad12ef0b9b23883548dcf44ea3bd59
 
 # Override default flag values for local packages and extra-deps
 # flags: {}

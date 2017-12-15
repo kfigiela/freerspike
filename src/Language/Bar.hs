@@ -7,8 +7,8 @@
 {-# LANGUAGE TypeOperators         #-}
 
 module Language.Bar where
-import           Control.Monad.Freer
 import           Domain
+import           Eff
 
 -- just data types, no extra boilerplate
 

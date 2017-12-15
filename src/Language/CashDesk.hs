@@ -7,8 +7,8 @@
 {-# LANGUAGE TypeOperators         #-}
 
 module Language.CashDesk where
-import           Control.Monad.Freer
 import           Domain
+import           Eff
 
 data CashDesk a where
     MakeBill :: CashDesk Int
