@@ -8,7 +8,7 @@
 {-# LANGUAGE TypeOperators         #-}
 
 module Interpreters.Kitchen
-  ( runKitchen
+  ( runKitchen, Oven
   ) where
 
 import           Control.Exception (ArithException (..), SomeException, throwIO)
