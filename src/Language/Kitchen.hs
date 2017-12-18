@@ -1,23 +1,15 @@
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE GADTs                 #-}
-{-# LANGUAGE LambdaCase            #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE RankNTypes            #-}
-{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE GADTs            #-}
+{-# LANGUAGE TemplateHaskell  #-}
 
 module Language.Kitchen where
 
 import           Domain
-import           Eff
+import           Eff.TH
 
 
 data Kitchen a where
-    OrderPizza :: Pizza -> Kitchen Int
+    MakePizza :: Pizza -> Kitchen Int
     Complain :: String -> Kitchen ()
 
-orderPizza :: Member Kitchen effs => Pizza -> Eff effs Int
-orderPizza = send . OrderPizza
-
-complain :: Member Kitchen effs => String -> Eff effs ()
-complain = send . Complain
+makeFreer ''Kitchen

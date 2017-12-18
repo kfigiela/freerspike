@@ -1,14 +1,9 @@
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE GADTs                 #-}
-{-# LANGUAGE LambdaCase            #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE RankNTypes            #-}
-{-# LANGUAGE TypeOperators         #-}
-
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE GADTs            #-}
+{-# LANGUAGE TemplateHaskell  #-}
 module Language.Bar where
-import           Domain
-import           Eff
+
+import           Eff.TH
 
 -- just data types, no extra boilerplate
 
@@ -16,8 +11,14 @@ data Bar a where
     ServeWine :: Bar String
     ServeAppetizers :: Int -> Bar ()
 
-serveWine :: Member Bar effs => Eff effs String
-serveWine = send ServeWine
+-- generate smart constructors with TH
+makeFreer ''Bar
 
-serveAppetizers :: Member Bar effs => Int -> Eff effs ()
-serveAppetizers = send . ServeAppetizers
+-- or just do this manually
+
+-- serveWine :: Member Bar effs => Eff effs String
+-- serveWine = send ServeWine
+
+-- serveAppetizers :: Member Bar effs => Int -> Eff effs ()
+-- serveAppetizers = send . ServeAppetizers
+
