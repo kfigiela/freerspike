@@ -5,8 +5,6 @@
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE RankNTypes            #-}
-{-# LANGUAGE TemplateHaskell       #-}
-{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
 
@@ -37,5 +35,5 @@ payTheBill = send . PayTheBill
 -- This one can throw exception: we require it to be run in Exc TransactionException environment.
 -- Interpreter returns exception as Either(Left) and we rethrow it using Exc effect.
 -- However, this is at cost of making this little boilerplate
-doSthStupid' :: (Member (Exc TransactionException) effs, Member CashDesk effs) => Eff effs ()
-doSthStupid' = send DoSthStupid >>= squelch
+doSthStupid :: (Member (Exc TransactionException) effs, Member CashDesk effs) => Eff effs ()
+doSthStupid = send DoSthStupid >>= squelch

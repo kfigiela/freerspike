@@ -19,7 +19,7 @@ import           Eff.SafeIO            (SIO, runSafeIO)
 import           Domain
 import           Interpreters.Bar      (runBar)
 import           Interpreters.CashDesk (runCashDesk)
-import           Interpreters.DB       (runDB, runDBErr)
+import           Interpreters.DB       (runDB)
 import           Interpreters.Kitchen  (Oven, runKitchen)
 import           Language.Bar          (Bar)
 import qualified Language.Bar          as Bar

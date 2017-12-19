@@ -3,13 +3,11 @@
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE RankNTypes            #-}
-{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
 
 module Interpreters.DB
   ( runDB
-  , runDBErr
   ) where
 
 import           Control.Exception (SomeException)
@@ -26,10 +24,3 @@ interpret :: (Member SIO r, Member (Exc SomeException) r)  => DB x -> Eff r x
 interpret BeginTransaction    = safeIO $ putStrLn "BEGIN TRANSACTION"
 interpret RollbackTransaction = safeIO $ putStrLn "ROLLBACK"
 interpret CommitTransaction   = safeIO $ putStrLn "COMMIT"
-
-runDBErr :: (Member SIO r, Member (Exc SomeException) r) => forall a. Eff ((Exc TransactionException) ': r) a -> Eff r (Either TransactionException a)
-runDBErr a = runError a >>= \case
-    Left err -> do
-        safeIO $ putStrLn "ROLLBACK12"
-        return $ Left err
-    Right d -> return $ Right d

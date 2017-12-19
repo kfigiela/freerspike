@@ -1,10 +1,8 @@
 {-# LANGUAGE AllowAmbiguousTypes   #-}
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE RankNTypes            #-}
-{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
 
@@ -13,7 +11,6 @@ module Interpreters.CashDesk
   ) where
 
 import           Control.Exception (ArithException (..), SomeException, throwIO)
-import           Data.Either
 import           Eff               (Eff, Member, handleRelay)
 import           Eff.Exc           (Exc, throwError)
 import           Eff.Exc.Pure      (runError)
