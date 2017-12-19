@@ -15,6 +15,7 @@ module Language.DB
   ( transactionally
   , DB (..)
   , TransactionException (..)
+  , rollbackTransaction
   ) where
 
 import           Eff
@@ -26,7 +27,7 @@ import           Eff.TH
 newtype TransactionException = TransactionException String deriving (Show)
 
 data DB a where
-    BeginTransaction    :: DB () -- begin transaction
+    BeginTransaction    :: DB Int -- begin transaction
     CommitTransaction   :: DB () -- commit
     RollbackTransaction :: DB () -- rollback
 

@@ -8,19 +8,37 @@
 
 module Interpreters.DB
   ( runDB
+  , TransactionState
   ) where
 
 import           Control.Exception (SomeException)
 import           Eff               (Eff, Member, handleRelay)
-import           Eff.Exc           (Exc)
-import           Eff.Exc.Pure      (runError)
+import           Eff.Exc           (Exc, throwError)
+import           Eff.Exc.Pure      (catchError, runError)
 import           Eff.SafeIO        (SIO, safeIO)
-import           Language.DB       (DB (..), TransactionException)
+import           Eff.State.Pure
+import           Language.DB       (DB (..), TransactionException,
+                                    rollbackTransaction)
 
-runDB :: (Member SIO r, Member (Exc SomeException) r) => Eff (DB ': r) a -> Eff r a
-runDB = handleRelay pure (\k q -> interpret k >>= q)
+data TransactionHandle = TransactionHandle Int
 
-interpret :: (Member SIO r, Member (Exc SomeException) r)  => DB x -> Eff r x
-interpret BeginTransaction    = safeIO $ putStrLn "BEGIN TRANSACTION"
-interpret RollbackTransaction = safeIO $ putStrLn "ROLLBACK"
+type TransactionState = Maybe TransactionHandle
+
+runDB :: (Member SIO effs, Member (Exc SomeException) effs) => Eff (DB ': (State TransactionState) ': effs) a -> Eff effs a
+runDB eff = evalState (Nothing :: TransactionState) $ runDB' $ catchError eff handle
+  where
+    handle ::  (Member SIO effs, Member (State TransactionState) effs, Member DB effs, Member (Exc SomeException) effs) => SomeException -> Eff effs a
+    handle exc = rollbackTransaction >> throwError exc
+    runDB' :: (Member SIO effs, Member (State TransactionState) effs, Member (Exc SomeException) effs) => Eff (DB ': effs) a -> Eff effs a
+    runDB' = handleRelay pure (\k q -> interpret k >>= q)
+
+interpret :: (Member SIO effs, Member (State TransactionState) effs, Member (Exc SomeException) effs)  => DB x -> Eff effs x
+interpret BeginTransaction    = do
+    safeIO $ putStrLn "BEGIN TRANSACTION"
+    put $ Just $ TransactionHandle 123
+    return 123
+interpret RollbackTransaction = do
+  get >>= \case
+    Just (TransactionHandle h) -> safeIO $ putStrLn "ROLLBACK"
+    Nothing -> safeIO $ putStrLn "NO TRANSACTION TO ROLLBACK"
 interpret CommitTransaction   = safeIO $ putStrLn "COMMIT"
