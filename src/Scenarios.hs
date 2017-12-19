@@ -97,6 +97,19 @@ dbTransactions4 = do
     Kitchen.complain $ "This runs regardless of transaction status, result = " ++ show result
     return result
 
+dbTransactions5 :: (Member DB r, Member Kitchen r, Member Bar r, Member CashDesk r) => Eff r (Maybe String)
+dbTransactions5 = do
+    result <- DB.transactionally $ do
+        let a = 1
+            b = 0
+            c = 1 `div` 0 -- this will crash here, outside of SafeIO and we end up with unhandled exception
+        Kitchen.complain "Will crash soon"
+        Kitchen.complain $ "Crash with value" ++ show c
+        Kitchen.complain "This does not run"
+        return $ show c
+    Kitchen.complain $ "This runs regardless of transaction status, result = " ++ show result
+    return result
+
 allScenarios :: (Member DB r, Member Kitchen r, Member Bar r, Member CashDesk r) => [Eff r (Maybe String)]
 allScenarios =
     [ scenario1
@@ -104,4 +117,5 @@ allScenarios =
     , dbTransactions2
     , dbTransactions3
     , dbTransactions4
+    , dbTransactions5
     ]
