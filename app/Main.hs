@@ -49,8 +49,11 @@ payMyBill = do
 restaurant :: (Member DB r, Member Kitchen r, Member Bar r, Member CashDesk r) => Eff r (Maybe String)
 restaurant = do
     w <- DB.transactionally $ do
+        msg <- CashDesk.doSthSmart
+        Kitchen.complain $ "Message from smart waiter " ++ msg
         waitingTime1 <- Kitchen.makePizza (Pizza "Margherita" Medium)
-        CashDesk.doSthStupid
+        msg' <- CashDesk.doSthStupid
+        Kitchen.complain $ "Message from stupid waiter " ++ msg'
         waitingTime2 <- Kitchen.makePizza (Pizza "Capricora" Small)
         wineName <- Bar.serveWine
         Bar.serveAppetizers $ waitingTime1 + waitingTime2

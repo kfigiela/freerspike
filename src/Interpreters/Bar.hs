@@ -20,6 +20,6 @@ runBar = handleRelay pure (\k q -> interpret k >>= q)
 
 interpret :: (Member SIO r, Member (Exc SomeException) r)  => Bar x -> Eff r x
 interpret ServeWine = safeIO $ do
-            putStrLn "Serving some wine"
-            return "Merlot"
+    putStrLn "Serving some wine"
+    return "Merlot"
 interpret (ServeAppetizers time) = safeIO $ putStrLn $ "Appetizers for waiting time: " ++ show time

@@ -22,7 +22,8 @@ import           Language.DB       (TransactionException)
 
 data CashDesk a where
     MakeBill    :: CashDesk Int
-    DoSthStupid :: CashDesk (Either TransactionException ()) -- throws our exception
+    DoSthStupid :: CashDesk (Either TransactionException String) -- throws our exception
+    DoSthSmart  :: CashDesk (Either TransactionException String) -- throws our exception
     PayTheBill  :: Int -> CashDesk (Maybe Int)
 
 
@@ -35,5 +36,8 @@ payTheBill = send . PayTheBill
 -- This one can throw exception: we require it to be run in Exc TransactionException environment.
 -- Interpreter returns exception as Either(Left) and we rethrow it using Exc effect.
 -- However, this is at cost of making this little boilerplate
-doSthStupid :: (Member (Exc TransactionException) effs, Member CashDesk effs) => Eff effs ()
+doSthStupid :: (Member (Exc TransactionException) effs, Member CashDesk effs) => Eff effs String
 doSthStupid = send DoSthStupid >>= squelch
+
+doSthSmart :: (Member (Exc TransactionException) effs, Member CashDesk effs) => Eff effs String
+doSthSmart = send DoSthSmart >>= squelch

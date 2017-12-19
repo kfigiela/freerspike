@@ -23,6 +23,7 @@ runCashDesk = handleRelay pure (\k q -> interpret k >>= q)
 
 interpret :: (Member SIO effs, Member (Exc SomeException) effs)  => CashDesk x -> Eff effs x
 interpret DoSthStupid = return $ Left $ TransactionException "I'm stupid"
+interpret DoSthSmart  = return $ Right "I'm smart"
 interpret MakeBill = safeIO $ do
     putStrLn "Printing bill"
     return 421

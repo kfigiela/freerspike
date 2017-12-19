@@ -28,7 +28,7 @@ newtype TransactionException = TransactionException String deriving (Show)
 data DB a where
     BeginTransaction    :: DB () -- begin transaction
     CommitTransaction   :: DB () -- commit
-    RollbackTransaction  :: DB () -- rollback
+    RollbackTransaction :: DB () -- rollback
 
 makeFreer ''DB
 
