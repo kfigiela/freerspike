@@ -94,7 +94,7 @@ dbTransactions1 = do
     Kitchen.complain $ "This runs regardless of transaction status, result = " ++ show result
     return result
 
-dbTransactions2 :: (Member DB r, Member Kitchen r, Member Bar r, Member CashDesk r) => Eff r (Maybe String)
+dbTransactions2 :: (Member DB r, Member Kitchen r, Member CashDesk r) => Eff r (Maybe String)
 dbTransactions2 = do
     result <- DB.transactionally $ do
         msg <- CashDesk.doSthStupid -- this HAS to run within transaction
@@ -103,7 +103,7 @@ dbTransactions2 = do
     Kitchen.complain $ "This runs regardless of transaction status, result = " ++ show result
     return result
 
-dbTransactions3 :: (Member DB r, Member Kitchen r, Member Bar r, Member CashDesk r) => Eff r (Maybe String)
+dbTransactions3 :: (Member DB r, Member Kitchen r) => Eff r (Maybe String)
 dbTransactions3 = do
     result <- DB.transactionally $ do
         let a = 1
@@ -113,7 +113,7 @@ dbTransactions3 = do
     Kitchen.complain $ "This runs regardless of transaction status, result = " ++ show result
     return result
 
-dbTransactions4 :: (Member DB r, Member Kitchen r, Member Bar r, Member CashDesk r) => Eff r (Maybe String)
+dbTransactions4 :: (Member DB r, Member Kitchen r) => Eff r (Maybe String)
 dbTransactions4 = do
     result <- DB.transactionally $ do
         let a = 1
@@ -123,7 +123,7 @@ dbTransactions4 = do
     Kitchen.complain $ "This runs regardless of transaction status, result = " ++ show result
     return result
 
-dbTransactions5 :: (Member DB r, Member Kitchen r, Member Bar r, Member CashDesk r) => Eff r (Maybe String)
+dbTransactions5 :: (Member DB r, Member Kitchen r) => Eff r (Maybe String)
 dbTransactions5 = do
     result <- DB.transactionally $ do
         let a = 1
