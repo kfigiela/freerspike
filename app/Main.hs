@@ -30,24 +30,16 @@ import qualified Language.DB           as DB
 import           Language.Kitchen      (Kitchen)
 import qualified Language.Kitchen      as Kitchen
 
--- instance SafeForRegion DB.Transaction '[DB, SIO, Exc SomeException]
--- instance SafeForRegion Oven '[Exc DB.TransactionException, DB, SIO, Exc SomeException]
-instance SafeForRegion Oven '[Exc DB.TransactionException, DB, SIO, Exc SomeException]
--- instance SafeForRegion DB.Transaction '[CashDesk, Bar, Kitchen, DB, SIO, Exc SomeException]
--- instance SafeForRegion DB.Transaction '[Exc DB.TransactionException, CashDesk, Bar, Kitchen, DB, SIO, Exc SomeException]
--- instance SafeForRegion DB.Transaction '[Exc DB.TransactionException, CashDesk, Bar, Kitchen, Exc DB.TransactionException, DB, SIO, Exc SomeException]
--- -- instance SafeForRegion DB.Transaction '[CashDesk, Bar, Kitchen, DB, SIO, Exc SomeException]
-
+instance SafeForRegion Oven '[DB, SIO, Exc SomeException]
 
 main :: IO ()
 main = do
-    servedWine <- runSafeIO $ runDB $ runDBErr $ runKitchen $ runBar $ runCashDesk restaurant
+    servedWine <- runSafeIO $ runDB $ runKitchen $ runBar $ runCashDesk restaurant
     print servedWine
 
 -- reusable subscenario
 payMyBill ::  (Member CashDesk r) => Eff r ()
 payMyBill = do
-    -- CashDesk.transactionally $ CashDesk.withinTransaction $ do
     billAmt <- CashDesk.makeBill
     CashDesk.payTheBill 12
     CashDesk.payTheBill $ billAmt - 12
@@ -59,7 +51,6 @@ restaurant = do
     w <- DB.transactionally $ do
         waitingTime1 <- Kitchen.makePizza (Pizza "Margherita" Medium)
         CashDesk.doSthStupid
-        throwError $ DB.TransactionException "I'm even more stupid"
         waitingTime2 <- Kitchen.makePizza (Pizza "Capricora" Small)
         wineName <- Bar.serveWine
         Bar.serveAppetizers $ waitingTime1 + waitingTime2

@@ -13,6 +13,7 @@ module Interpreters.CashDesk
   ) where
 
 import           Control.Exception (ArithException (..), SomeException, throwIO)
+import           Data.Either
 import           Eff               (Eff, Member, handleRelay)
 import           Eff.Exc           (Exc, throwError)
 import           Eff.Exc.Pure      (runError)
@@ -20,11 +21,11 @@ import           Eff.SafeIO        (SIO, safeIO)
 import           Language.CashDesk (CashDesk (..))
 import           Language.DB
 
-runCashDesk :: (Member SIO effs, Member (Exc SomeException) effs,  Member (Exc TransactionException) effs) => Eff (CashDesk ': effs) a -> Eff effs a
+runCashDesk :: (Member SIO effs, Member (Exc SomeException) effs) => Eff (CashDesk ': effs) a -> Eff effs a
 runCashDesk = handleRelay pure (\k q -> interpret k >>= q)
 
-interpret :: (Member SIO effs, Member (Exc SomeException) effs, Member (Exc TransactionException) effs)  => CashDesk x -> Eff effs x
-interpret DoSthStupid = throwError $ TransactionException "I'm stupid"
+interpret :: (Member SIO effs, Member (Exc SomeException) effs)  => CashDesk x -> Eff effs x
+interpret DoSthStupid = return $ Left $ TransactionException "I'm stupid"
 interpret MakeBill = safeIO $ do
     putStrLn "Printing bill"
     return 421
