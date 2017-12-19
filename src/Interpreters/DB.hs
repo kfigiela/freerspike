@@ -28,7 +28,7 @@ runDB :: (Member SIO effs, Member (Exc SomeException) effs) => Eff (DB ': (State
 runDB eff = evalState (Nothing :: TransactionState) $ runDB' $ catchError eff handle
   where
     handle ::  (Member SIO effs, Member (State TransactionState) effs, Member DB effs, Member (Exc SomeException) effs) => SomeException -> Eff effs a
-    handle exc = rollbackTransaction >> throwError exc
+    handle exc = (safeIO $ print "DB exception") >> rollbackTransaction >> throwError exc
     runDB' :: (Member SIO effs, Member (State TransactionState) effs, Member (Exc SomeException) effs) => Eff (DB ': effs) a -> Eff effs a
     runDB' = handleRelay pure (\k q -> interpret k >>= q)
 
@@ -39,6 +39,9 @@ interpret BeginTransaction    = do
     return 123
 interpret RollbackTransaction = do
   get >>= \case
-    Just (TransactionHandle h) -> safeIO $ putStrLn "ROLLBACK"
+    Just (TransactionHandle h) -> safeIO $ putStrLn $ "ROLLBACK " ++ show h
     Nothing -> safeIO $ putStrLn "NO TRANSACTION TO ROLLBACK"
-interpret CommitTransaction   = safeIO $ putStrLn "COMMIT"
+  put (Nothing :: TransactionState)
+interpret CommitTransaction  = do
+  safeIO $ putStrLn "COMMIT"
+  put (Nothing :: TransactionState)
