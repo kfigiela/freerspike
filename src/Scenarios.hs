@@ -34,6 +34,18 @@ import qualified Language.Kitchen  as Kitchen
 -- This scenario is to show how multiple DSLs can be composed
 -- #####################################
 
+scenario1 :: (Member DB r, Member Kitchen r, Member Bar r, Member CashDesk r) => Eff r (Maybe String)
+scenario1 = do
+    waitingTime1 <- Kitchen.makePizza (Pizza "Margherita" Medium)
+    waitingTime2 <- Kitchen.makePizza (Pizza "Capricora" Small)
+    wineName <- Bar.serveWine
+    Bar.serveAppetizers $ waitingTime1 + waitingTime2
+    Kitchen.complain $ "Complain about wine: " ++ wineName
+    billAmt <- CashDesk.makeBill
+    CashDesk.payTheBill 12
+    CashDesk.payTheBill $ billAmt - 12
+    return $ Just wineName
+
 -- reusable subscenario
 payMyBill ::  (Member CashDesk r) => Eff r ()
 payMyBill = do
@@ -42,17 +54,31 @@ payMyBill = do
     CashDesk.payTheBill $ billAmt - 12
     return ()
 
-scenario1 :: (Member DB r, Member Kitchen r, Member Bar r, Member CashDesk r) => Eff r (Maybe String)
-scenario1 = do
+scenario2 :: (Member DB r, Member Kitchen r, Member Bar r, Member CashDesk r) => Eff r (Maybe String)
+scenario2 = do
     w <- DB.transactionally $ do
         waitingTime1 <- Kitchen.makePizza (Pizza "Margherita" Medium)
         waitingTime2 <- Kitchen.makePizza (Pizza "Capricora" Small)
         wineName <- Bar.serveWine
         Bar.serveAppetizers $ waitingTime1 + waitingTime2
-        Kitchen.complain $ "Food does not match " ++ wineName
+        Kitchen.complain $ "Complain about wine: " ++ wineName
         payMyBill
         return wineName
-    Kitchen.complain  "This still works"
+    Kitchen.complain  "This always happens"
+    return w
+
+scenario3 :: (Member DB r, Member Kitchen r, Member Bar r, Member CashDesk r) => Eff r (Maybe String)
+scenario3 = do
+    w <- DB.transactionally $ do
+        waitingTime1 <- Kitchen.makePizza (Pizza "Margherita" Medium)
+        waitingTime2 <- Kitchen.makePizza (Pizza "Capricora" Small)
+        wineName <- Bar.serveWine
+        CashDesk.doSthStupid
+        Bar.serveAppetizers $ waitingTime1 + waitingTime2
+        Kitchen.complain $ "Complain about wine: " ++ wineName
+        payMyBill
+        return wineName
+    Kitchen.complain  "This always happens"
     return w
 
 -- #####################################
@@ -113,6 +139,8 @@ dbTransactions5 = do
 allScenarios :: (Member DB r, Member Kitchen r, Member Bar r, Member CashDesk r) => [Eff r (Maybe String)]
 allScenarios =
     [ scenario1
+    , scenario2
+    , scenario3
     , dbTransactions1
     , dbTransactions2
     , dbTransactions3
