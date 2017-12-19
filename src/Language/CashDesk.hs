@@ -5,6 +5,7 @@
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
 
@@ -21,23 +22,25 @@ import           Eff.TH
 import           Language.DB       (TransactionException)
 
 data CashDesk a where
-    MakeBill    :: CashDesk Int
-    DoSthStupid :: CashDesk (Either TransactionException String) -- throws our exception
-    DoSthSmart  :: CashDesk (Either TransactionException String) -- throws our exception
-    PayTheBill  :: Int -> CashDesk (Maybe Int)
+    MakeBill     :: CashDesk Int
+    DoSthStupid' :: CashDesk (Either TransactionException String) -- throws our exception
+    DoSthSmart'  :: CashDesk (Either TransactionException String) -- throws our exception
+    PayTheBill   :: Int -> CashDesk (Maybe Int)
 
 
-makeBill :: Member CashDesk effs => Eff effs Int
-makeBill = send MakeBill
+makeFreer ''CashDesk
 
-payTheBill :: Member CashDesk effs => Int -> Eff effs (Maybe Int)
-payTheBill = send . PayTheBill
+-- makeBill :: Member CashDesk effs => Eff effs Int
+-- makeBill = send MakeBill
+
+-- payTheBill :: Member CashDesk effs => Int -> Eff effs (Maybe Int)
+-- payTheBill = send . PayTheBill
 
 -- This one can throw exception: we require it to be run in Exc TransactionException environment.
 -- Interpreter returns exception as Either(Left) and we rethrow it using Exc effect.
 -- However, this is at cost of making this little boilerplate
 doSthStupid :: (Member (Exc TransactionException) effs, Member CashDesk effs) => Eff effs String
-doSthStupid = send DoSthStupid >>= squelch
+doSthStupid = doSthStupid' >>= squelch
 
 doSthSmart :: (Member (Exc TransactionException) effs, Member CashDesk effs) => Eff effs String
-doSthSmart = send DoSthSmart >>= squelch
+doSthSmart = doSthSmart' >>= squelch
